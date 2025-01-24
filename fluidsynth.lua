@@ -17,7 +17,36 @@ ffi.cdef[[
     int fluid_synth_noteoff(fluid_synth_t* synth, int chan, int key);
 ]]
 
-local fluidsynth = ffi.load("libfluidsynth-3")
+
+-- Load the libraries (platform-specific)
+
+local save_path = love.filesystem.getSaveDirectory()
+
+local osver = love.system.getOS()
+local libfile
+
+if osver == "Linux" then
+    libfile = "libfluidsynth.so"
+elseif osver == "Windows" then
+    libfile = "libfluidsynth-3.dll"
+elseif osver == "OS X" then
+    libfile = "libfluidsynth-3.dylib"
+end
+
+if osver == "Windows" then
+    local dlls = {
+        "libgcc_s_sjlj-1.dll", "libintl-8.dll", "libglib-2.0-0.dll", "libgthread-2.0-0.dll", "libgobject-2.0-0.dll",
+        "libwinpthread-1.dll", "sndfile.dll",
+        "libgomp-1.dll", "libinstpatch-2.dll", "libstdc++-6.dll"
+    }
+
+    for _,dll in ipairs(dlls) do
+        ffi.load(save_path .. "/" .. dll)
+    end
+end
+
+local fluidsynth = ffi.load(save_path .. "/" .. libfile)
+
 
 local FluidSynth = {}
 FluidSynth.__index = FluidSynth
